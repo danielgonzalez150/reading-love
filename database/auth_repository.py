@@ -13,8 +13,20 @@ def register_new_user(email, password):
         - Una respuesta propia de supabase (201 si se creó el usuario,
         código de error si no se pudo crear)
     """
-    response = supabase.auth.sign_up({
-        "email": email,
-        "password": password,
-    })
-    return response
+    try:
+        # Intentamos logear
+        response = supabase.auth.sign_up({
+            "email": email,
+            "password": password
+        })
+
+        # Retornamos la respuesta
+        return response
+    
+    # Si hay algún error
+    except Exception as e:
+        # Imprimimos el error
+        print(f"Error en el registro: {e}")
+
+        # Retornamos none para que se sepa que no funcionó
+        return None
