@@ -27,7 +27,14 @@ async def get_register(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
 @app.post("/auth/register")
-async def post_register(request: Request, email: str = Form(...), password: str = Form(...)):
+async def post_register(
+    request: Request, 
+    email: str = Form(...), 
+    password: str = Form(...),
+    nombre: str = Form(...),
+    apellido: str = Form(...),
+    telefono: str = Form(...)
+):
     """
     Función que registra un usuario mediante los datos del Front y muestra una
     plantilla de éxito o de fracaso.
@@ -41,11 +48,11 @@ async def post_register(request: Request, email: str = Form(...), password: str 
     """
 
     # Llamar la función
-    resultado = register_new_user(email, password)
+    resultado = register_new_user(email, password, nombre, apellido, telefono)
     
     # Checar que no sea nulo
     if resultado is not None:
-        mensaje = "¡Casi listo! Revisa tu correo para confirmar la cuenta."
+        mensaje = "¡Registro exitoso! Ya puedes iniciar sesión."
     else:
         mensaje = "Hubo un error al intentar registrarte."
         

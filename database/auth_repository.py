@@ -1,7 +1,7 @@
 # Importamos el objeto de supabase Client
 from database.client import supabase
 
-def register_new_user(email, password):
+def register_new_user(email, password, nombre, apellido, telefono):
     """
     Función que usa las funciones del objeto supabase para registrar un usuario.
 
@@ -14,14 +14,25 @@ def register_new_user(email, password):
         código de error si no se pudo crear)
     """
     try:
-        # Intentamos logear
-        response = supabase.auth.sign_up({
+        # Intentamos logear en la tabla privada
+        auth_response = supabase.auth.sign_up({
             "email": email,
             "password": password
         })
 
-        # Retornamos la respuesta
-        return response
+        # Si sale bien, insertamos los datos en la tabla de clientes
+        if auth_response.user:
+            user_id = auth_response.user.id # El UUID que generó Supabase
+            
+            # Insertamos en tu tabla pública 'clientes'
+            supabase.table("clientes").insert({
+                "id_cliente": user_id, # Usamos el mismo ID de Auth para vincularlos
+                "nombre": nombre,
+                "apellido": apellido,
+                "telefono": telefono
+            }).execute()
+
+        return auth_response
     
     # Si hay algún error
     except Exception as e:
