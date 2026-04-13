@@ -1,0 +1,27 @@
+<main>
+    <h1>Catálogo de Libros</h1>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+        {% for libro in libros %}
+        <article>
+            <header>
+                <h4 style="margin-bottom: 0;">{{ libro.titulo }}</h4>
+                <small>Publicado en: {{ libro.ano_publicacion }}</small>
+            </header>
+            
+            <p>
+                <strong>Precio:</strong> 
+                <span style="color: #2ecc71;">${{ "{:,.0f}".format(libro.precio) }} COP</span>
+            </p>
+            
+            <footer>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>Disponibles: <strong>{{ libro.stock }}</strong></span>
+                    <button class="outline" style="padding: 5px 10px;">Ver más</button>
+                </div>
+            </footer>
+        </article>
+        {% else %}
+            <p>Por ahora no tenemos libros disponibles. ¡Vuelve pronto!</p>
+        {% endfor %}
+    </div>
+</main>

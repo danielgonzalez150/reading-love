@@ -4,25 +4,53 @@ Módulo principal
 Aquí se manejará toda la API que conecta el Frontend con la base de datos.
 """
 # Obtener el objeto FastAPI, Request para enviar, y Form para recibir datos
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, Response, Cookie, Depends, status
 
 # Importar los templates de Jinja para mostrar el HTML
 from fastapi.templating import Jinja2Templates
 
 # Importar el objeto de respuesta HTML para mostrar el HTML
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 # Importar el CRUD del usuario (Registro y logeo)
 from database.auth_repository import register_new_user, login_user
+
+# Importar el CRUD de los libros
+from database.book_repository import get_featured_books
 
 # Creamos el objeto de FastAPI y el objeto de plantilas
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
+async def verificar_sesion(session_token: str = Cookie(None)):
+    """
+    Si no hay token en las cookies, redirige al login.
+    """
+    if not session_token:
+        # Aquí puedes lanzar un error o redirigir
+        return RedirectResponse(url="/login", status_code=303)
+    
+    # Opcional: Podrías validar el token con supabase.auth.get_user(session_token)
+    return session_token
+
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request, token: str = Depends(verificar_sesion)):
+    """
+    Endpoint principal que muestra el catálogo de libros.
+    """
+    # Traemos los 10 libros de la base de datos
+    lista_libros = get_featured_books(10)
+    
+    # Renderizamos la página
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "libros": lista_libros
+    })
+
 @app.get("/register", response_class=HTMLResponse)
 async def get_register(request: Request):
     """
-    Función para renderizar la plantilla de registro
+    Método GET para renderizar la plantilla de registro
     """
     return templates.TemplateResponse("register.html", {"request": request})
 
@@ -70,7 +98,7 @@ async def get_login(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 @app.post("/auth/login")
-async def post_login(request: Request, email: str = Form(...), password: str = Form(...)):
+async def post_login(response: Response, email: str = Form(...), password: str = Form(...)):
     """
     Método POST para realizar el login del usuario.
 
@@ -86,13 +114,21 @@ async def post_login(request: Request, email: str = Form(...), password: str = F
     # LLamar a la función CRUD para el logeo
     resultado = login_user(email, password)
     
-    # Checar que haya resultado y que sea un usuario válido
-    if resultado is not None and resultado.user is not None:
-        # Aquí luego guardaremos la sesión, por ahora solo confirmamos
-        return {"status": "success", "message": f"Bienvenido {resultado.user.email}"}
-    else:
-        # Mostrar nuevamente el login en caso de error
-        return templates.TemplateResponse("login.html", {
-            "request": request, 
-            "mensaje": "Credenciales incorrectas o correo no confirmado."
-        })
+    if resultado and resultado.session:
+        # 1. Creamos la respuesta de redirección al índice ("/")
+        response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+        
+        # 2. Le pegamos la cookie a esa misma respuesta
+        response.set_cookie(
+            key="session_token", 
+            value=resultado.session.access_token, 
+            httponly=True,
+            max_age=3600 # La sesión dura 1 hora
+        )
+        return response
+    
+    # Si falla, lo mandamos de vuelta al login con un mensaje
+    return templates.TemplateResponse("login.html", {
+        "request": {}, # Necesario para Jinja2
+        "mensaje": "Correo o contraseña incorrectos"
+    })
