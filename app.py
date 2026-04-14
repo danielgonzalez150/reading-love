@@ -25,7 +25,7 @@ from database.book_repository import get_featured_books
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-# Montar la carpeta de archivos estáticos (CSS, JS, imágenes)
+# Montar la carpeta de archivos estáticos (CSS, JS, imágenes) jdmc
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 async def verificar_sesion(session_token: str = Cookie(None)):
