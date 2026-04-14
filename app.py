@@ -34,14 +34,17 @@ async def verificar_sesion(session_token: str = Cookie(None)):
     return session_token
 
 @app.get("/", response_class=HTMLResponse)
-async def home(request: Request, token: str = Depends(verificar_sesion)):
+async def home(request: Request, session_token: str = Cookie(None)):
     """
-    Endpoint principal que muestra el catálogo de libros.
+    Método GET para obtener el índice
     """
-    # Traemos los 10 libros de la base de datos
+    # El "Freno": Si no hay cookie, mandamos la redirección de una vez
+    if not session_token:
+        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+    
+    # Si hay cookie, el código sigue normal
     lista_libros = get_featured_books(10)
     
-    # Renderizamos la página
     return templates.TemplateResponse("index.html", {
         "request": request,
         "libros": lista_libros
@@ -98,7 +101,7 @@ async def get_login(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 @app.post("/auth/login")
-async def post_login(response: Response, email: str = Form(...), password: str = Form(...)):
+async def post_login(request: Request, email: str = Form(...), password: str = Form(...)):
     """
     Método POST para realizar el login del usuario.
 
@@ -129,6 +132,6 @@ async def post_login(response: Response, email: str = Form(...), password: str =
     
     # Si falla, lo mandamos de vuelta al login con un mensaje
     return templates.TemplateResponse("login.html", {
-        "request": {}, # Necesario para Jinja2
+        "request": request, # Necesario para Jinja2
         "mensaje": "Correo o contraseña incorrectos"
     })
