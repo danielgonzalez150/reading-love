@@ -12,6 +12,9 @@ from fastapi.templating import Jinja2Templates
 # Importar el objeto de respuesta HTML para mostrar el HTML
 from fastapi.responses import HTMLResponse, RedirectResponse
 
+# Importar el montaje de archivos estáticos jdmc
+from fastapi.staticfiles import StaticFiles
+
 # Importar el CRUD del usuario (Registro y logeo)
 from database.auth_repository import register_new_user, login_user
 
@@ -21,6 +24,9 @@ from database.book_repository import get_featured_books
 # Creamos el objeto de FastAPI y el objeto de plantilas
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+
+# Montar la carpeta de archivos estáticos (CSS, JS, imágenes)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 async def verificar_sesion(session_token: str = Cookie(None)):
     """

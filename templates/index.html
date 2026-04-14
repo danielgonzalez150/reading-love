@@ -1,27 +1,54 @@
-<main>
-    <h1>Catálogo de Libros</h1>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
-        {% for libro in libros %}
-        <article>
-            <header>
-                <h4 style="margin-bottom: 0;">{{ libro.titulo }}</h4>
-                <small>Publicado en: {{ libro.ano_publicacion }}</small>
-            </header>
-            
-            <p>
-                <strong>Precio:</strong> 
-                <span style="color: #2ecc71;">${{ "{:,.0f}".format(libro.precio) }} COP</span>
-            </p>
-            
-            <footer>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span>Disponibles: <strong>{{ libro.stock }}</strong></span>
-                    <button class="outline" style="padding: 5px 10px;">Ver más</button>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Love - Catálogo</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="page-wrapper">
+        <nav class="navbar">
+            <div class="container">
+                <a href="/" class="navbar-brand">📖 Reading <span>Love</span></a>
+                <ul class="navbar-links">
+                    <li><a href="/">Catálogo</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <div class="container">
+                <h1 class="page-title">Catálogo de <span>Libros</span></h1>
+                <p class="page-description">Explora nuestra selección de libros disponibles</p>
+
+                <div class="book-grid">
+                    {% for libro in libros %}
+                    <div class="book-card">
+                        <div>
+                            <h3>{{ libro.titulo }}</h3>
+                            <p class="book-year">Publicado en {{ libro.ano_publicacion }}</p>
+                            <p class="book-price">${{ "{:,.0f}".format(libro.precio) }} COP</p>
+                        </div>
+                        <div class="book-card-footer">
+                            <span class="stock">Disponibles: <strong>{{ libro.stock }}</strong></span>
+                            <a href="#" class="btn btn-outline">Ver más</a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <p>Por ahora no tenemos libros disponibles. ¡Vuelve pronto!</p>
+                    </div>
+                    {% endfor %}
                 </div>
-            </footer>
-        </article>
-        {% else %}
-            <p>Por ahora no tenemos libros disponibles. ¡Vuelve pronto!</p>
-        {% endfor %}
+            </div>
+        </main>
+
+        <footer class="site-footer">
+            <div class="container">
+                <p>© 2026 Reading Love. Todos los derechos reservados.</p>
+            </div>
+        </footer>
     </div>
-</main>
+</body>
+</html>
