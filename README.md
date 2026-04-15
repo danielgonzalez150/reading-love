@@ -72,6 +72,12 @@ Crea un archivo .env con tus credenciales de Supabase (SUPABASE_URL y SUPABASE_K
 uvicorn app:app --reload
 ```
 
+## 📷 Imagenes
+
+**1- Base de datos:**
+
+<img width="1256" height="782" alt="image" src="https://github.com/user-attachments/assets/78662a13-6712-4ba4-a43a-4339704676a1" />
+
 ## 👥 Colaboradores
 
 Daniel Mitchell González Henao 
