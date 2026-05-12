@@ -13,6 +13,7 @@
                 <a href="/" class="navbar-brand">📖 Reading <span>Love</span></a>
                 <ul class="navbar-links">
                     <li><a href="/">Catálogo</a></li>
+                    <li><button type="button" class="btn btn-outline btn-historial" onclick="abrirHistorialCompras()">Mi historial</button></li>
                 </ul>
             </div>
         </nav>
@@ -32,7 +33,7 @@
                         </div>
                         <div class="book-card-footer">
                             <span class="stock">Disponibles: <strong>{{ libro.stock }}</strong></span>
-                            <a href="#" class="btn btn-outline">Ver más</a>
+                            <button onclick="abrirDetalleLibro({{ libro.id_libro }})" class="btn btn-outline">Ver más</button>
                         </div>
                     </div>
                     {% else %}
@@ -50,5 +51,250 @@
             </div>
         </footer>
     </div>
+
+    <!-- MODAL PARA DETALLES DEL LIBRO - JDMC 20260511 -->
+    <!-- Popup grande y elegante que muestra información completa del libro,
+         autor, editorial, descripción y formulario para procesar compra -->
+    <div id="modalDetalles" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarModal()">&times;</span>
+            
+            <div class="modal-body">
+                <div class="libro-detalle" id="libroDetalle">
+                    <div class="loader">Cargando detalles...</div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button onclick="cerrarModal()" class="btn btn-secondary">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA HISTORIAL DE COMPRAS -->
+    <div id="modalHistorial" class="modal">
+        <div class="modal-content modal-content-historial">
+            <span class="modal-close" onclick="cerrarModalHistorial()">&times;</span>
+
+            <div class="modal-body">
+                <div class="historial-detalle" id="historialDetalle">
+                    <div class="loader">Cargando historial...</div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button onclick="cerrarModalHistorial()" class="btn btn-secondary">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para abrir el modal y cargar detalles del libro
+        async function abrirDetalleLibro(bookId) {
+            const modal = document.getElementById('modalDetalles');
+            const libroDetalle = document.getElementById('libroDetalle');
+            
+            // Mostrar modal con loader
+            modal.classList.add('activo');
+            document.documentElement.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden';
+            libroDetalle.innerHTML = '<div class="loader">Cargando detalles...</div>';
+            
+            try {
+                // Obtener detalles del libro desde la API
+                const response = await fetch(`/api/libro/${bookId}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    libroDetalle.innerHTML = `<p class="error">${data.error}</p>`;
+                    return;
+                }
+                
+                // Construir el HTML con los detalles
+                const autorNombre = data.autores?.nombre || 'Desconocido';
+                const editorialNombre = data.editoriales?.nombre || 'Desconocida';
+                const descripcion = data.descripcion_libro || 'Sin descripción disponible.';
+                
+                libroDetalle.innerHTML = `
+                    <div class="detalle-header">
+                        <h2>${data.titulo}</h2>
+                    </div>
+                    
+                    <div class="detalle-info">
+                        <p><strong>Autor:</strong> ${autorNombre}</p>
+                        <p><strong>Editorial:</strong> ${editorialNombre}</p>
+                        <p><strong>Publicado:</strong> ${data.ano_publicacion}</p>
+                        <p><strong>Disponibles:</strong> <span class="stock-badge">${data.stock}</span></p>
+                    </div>
+                    
+                    <div class="detalle-descripcion">
+                        <h3>Descripción</h3>
+                        <p>${descripcion}</p>
+                    </div>
+                    
+                    <div class="detalle-precio">
+                        <span class="precio-label">Precio</span>
+                        <span class="precio-valor">$${new Intl.NumberFormat('es-CO').format(data.precio)} COP</span>
+                    </div>
+                    
+                    <form id="formCompra" onsubmit="procesarCompra(event, ${data.id_libro})">
+                        <div class="form-group">
+                            <label for="cantidad">Cantidad:</label>
+                            <input type="number" id="cantidad" name="cantidad" value="1" min="1" max="${data.stock}" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" ${data.stock === 0 ? 'disabled' : ''}>
+                            ${data.stock === 0 ? 'Sin stock' : 'Comprar ahora'}
+                        </button>
+                    </form>
+                `;
+                
+            } catch (error) {
+                console.error('Error al cargar detalles:', error);
+                libroDetalle.innerHTML = '<p class="error">Error al cargar los detalles del libro.</p>';
+            }
+        }
+        
+        // Función para cerrar el modal
+        function cerrarModal() {
+            const modal = document.getElementById('modalDetalles');
+            modal.classList.remove('activo');
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+        }
+
+        // Función para abrir historial de compras
+        async function abrirHistorialCompras() {
+            const modal = document.getElementById('modalHistorial');
+            const historialDetalle = document.getElementById('historialDetalle');
+
+            modal.classList.add('activo');
+            document.documentElement.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden';
+            historialDetalle.innerHTML = '<div class="loader">Cargando historial...</div>';
+
+            try {
+                const response = await fetch('/api/historial-compras');
+                const data = await response.json();
+
+                if (!data.success) {
+                    const detalle = data.details ? `<br><br>Detalle: ${data.details}` : '';
+                    historialDetalle.innerHTML = `<p class="error">${data.error || 'No se pudo cargar el historial'}${detalle}</p>`;
+                    return;
+                }
+
+                const historial = data.historial || [];
+
+                if (historial.length === 0) {
+                    historialDetalle.innerHTML = '<p class="empty-history">Aún no tienes compras registradas.</p>';
+                    return;
+                }
+
+                const htmlHistorial = historial.map(tx => {
+                    const fecha = tx.fecha ? new Date(tx.fecha).toLocaleString('es-CO') : 'Sin fecha';
+                    const items = (tx.items || []).map(item => {
+                        return `
+                            <li>
+                                <span class="item-titulo">${item.titulo}</span>
+                                <span class="item-meta">x${item.cantidad} · $${new Intl.NumberFormat('es-CO').format(item.precio_unitario)} c/u</span>
+                                <span class="item-subtotal">$${new Intl.NumberFormat('es-CO').format(item.subtotal || 0)} COP</span>
+                            </li>
+                        `;
+                    }).join('');
+
+                    return `
+                        <div class="historial-card">
+                            <div class="historial-card-header">
+                                <h3>Transacción #${tx.id_transaccion}</h3>
+                                <span class="historial-fecha">${fecha}</span>
+                            </div>
+                            <ul class="historial-items">${items}</ul>
+                            <div class="historial-total">Total: $${new Intl.NumberFormat('es-CO').format(tx.total || 0)} COP</div>
+                        </div>
+                    `;
+                }).join('');
+
+                historialDetalle.innerHTML = `
+                    <div class="detalle-header">
+                        <h2>Mi Historial de Compras</h2>
+                    </div>
+                    <div class="historial-lista">${htmlHistorial}</div>
+                `;
+            } catch (error) {
+                console.error('Error al cargar historial:', error);
+                historialDetalle.innerHTML = '<p class="error">Error al cargar el historial de compras.</p>';
+            }
+        }
+
+        function cerrarModalHistorial() {
+            const modal = document.getElementById('modalHistorial');
+            modal.classList.remove('activo');
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+        }
+        
+        // Función para procesar la compra
+        async function procesarCompra(event, bookId) {
+            event.preventDefault();
+            
+            const cantidad = document.getElementById('cantidad').value;
+            const boton = event.target.querySelector('button[type="submit"]');
+            
+            // Deshabilitar botón y mostrar loading
+            boton.disabled = true;
+            const textoOriginal = boton.textContent;
+            boton.textContent = 'Procesando...';
+            
+            try {
+                // Enviar datos de compra a la API
+                const formData = new FormData();
+                formData.append('book_id', bookId);
+                formData.append('cantidad', cantidad);
+                
+                const response = await fetch('/api/compra', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const resultado = await response.json();
+                
+                console.log('Respuesta compra:', resultado);
+                
+                if (resultado.success) {
+                    alert(`¡Compra exitosa!\n\nTransacción ID: ${resultado.transaccion_id}\nTotal: $${new Intl.NumberFormat('es-CO').format(resultado.total)} COP`);
+                    cerrarModal();
+                    // Recargar la página para actualizar el stock
+                    location.reload();
+                } else {
+                    let mensajeError = resultado.error || 'No se pudo procesar la compra';
+                    if (resultado.details) {
+                        mensajeError += `\n\nDetalle: ${resultado.details}`;
+                    }
+                    console.error('Error compra:', mensajeError);
+                    alert(`Error: ${mensajeError}`);
+                    boton.disabled = false;
+                    boton.textContent = textoOriginal;
+                }
+                
+            } catch (error) {
+                console.error('Error en compra:', error);
+                alert('Error al procesar la compra: ' + error.message);
+                boton.disabled = false;
+                boton.textContent = textoOriginal;
+            }
+        }
+        
+        // Cerrar modal al hacer click afuera
+        window.onclick = function(event) {
+            const modalDetalle = document.getElementById('modalDetalles');
+            const modalHistorial = document.getElementById('modalHistorial');
+            if (event.target === modalDetalle) {
+                cerrarModal();
+            }
+            if (event.target === modalHistorial) {
+                cerrarModalHistorial();
+            }
+        }
+    </script>
 </body>
 </html>

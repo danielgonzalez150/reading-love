@@ -408,3 +408,387 @@ a:hover {
         gap: 0.75rem;
     }
 }
+
+/* ===== MODAL PARA DETALLES DEL LIBRO - JDMC 20260511 ===== 
+   Popup grande y elegante que aparece encima de todo el contenido */
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(6px);
+}
+
+.modal.activo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, var(--bg-card), #252a45);
+    border: 2px solid var(--primary);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 900px;
+    max-height: 85vh;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-close {
+    position: absolute;
+    right: 1.5rem;
+    top: 1.5rem;
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    background: none;
+    border: none;
+    padding: 0;
+    transition: color 0.2s;
+}
+
+.modal-close:hover {
+    color: var(--primary);
+}
+
+.modal-body {
+    padding: 2.5rem;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    padding: 1.5rem 2.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+/* Contenido del libro */
+.detalle-header h2 {
+    font-size: 1.8rem;
+    color: var(--primary);
+    margin: 0 0 1.5rem 0;
+}
+
+.detalle-info {
+    background: rgba(37, 42, 69, 0.4);
+    border-left: 4px solid var(--primary);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.detalle-info p {
+    margin: 0.75rem 0;
+    font-size: 0.95rem;
+}
+
+.detalle-info strong {
+    color: var(--text-primary);
+}
+
+.stock-badge {
+    background: var(--accent);
+    color: var(--bg-dark);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.detalle-descripcion {
+    margin-bottom: 1.5rem;
+}
+
+.detalle-descripcion h3 {
+    font-size: 1.1rem;
+    color: var(--primary);
+    margin-bottom: 0.75rem;
+}
+
+.detalle-descripcion p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.detalle-precio {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.precio-label {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.precio-valor {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+}
+
+/* Formulario */
+#formCompra {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.form-group input {
+    padding: 0.75rem;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(233, 30, 140, 0.1);
+}
+
+/* Loader */
+.loader {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+}
+
+.loader::after {
+    content: '';
+    display: block;
+    width: 30px;
+    height: 30px;
+    margin: 1rem auto 0;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.error {
+    background-color: rgba(239, 68, 68, 0.12);
+    color: var(--danger);
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 3px solid var(--danger);
+}
+.btn {
+    padding: 0.85rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    width: 100%;
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(233, 30, 140, 0.3);
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--border-color);
+}
+
+.btn-outline {
+    background-color: transparent;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+}
+
+.btn-outline:hover {
+    background-color: var(--primary);
+    color: white;
+}
+
+.btn-historial {
+    padding: 0.4rem 0.9rem;
+    font-size: 0.82rem;
+}
+
+.modal-content-historial {
+    max-width: 960px;
+}
+
+.empty-history {
+    color: var(--text-secondary);
+    padding: 1rem;
+    background: rgba(37, 42, 69, 0.35);
+    border-left: 3px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.historial-lista {
+    display: grid;
+    gap: 1rem;
+}
+
+.historial-card {
+    background: rgba(22, 33, 62, 0.6);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.historial-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    gap: 1rem;
+}
+
+.historial-card-header h3 {
+    margin: 0;
+    color: var(--primary-light);
+    font-size: 1rem;
+}
+
+.historial-fecha {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.historial-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.55rem;
+}
+
+.historial-items li {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr auto;
+    gap: 0.75rem;
+    padding: 0.55rem 0.7rem;
+    background: rgba(15, 15, 26, 0.6);
+    border-radius: 8px;
+}
+
+.item-titulo {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.item-meta {
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+}
+
+.item-subtotal {
+    color: var(--accent);
+    font-weight: 700;
+    text-align: right;
+}
+
+.historial-total {
+    margin-top: 0.8rem;
+    text-align: right;
+    color: var(--text-primary);
+    font-weight: 700;
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.65rem;
+}
+
+/* ===== Responsive: Modal en móviles ===== */
+@media (max-width: 640px) {
+    .modal-content {
+        width: 95%;
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+    }
+
+    .modal-footer {
+        flex-direction: column-reverse;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .historial-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .historial-items li {
+        grid-template-columns: 1fr;
+    }
+
+    .item-subtotal {
+        text-align: left;
+    }
+}

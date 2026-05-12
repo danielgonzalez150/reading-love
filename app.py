@@ -19,7 +19,8 @@ from fastapi.staticfiles import StaticFiles
 from database.auth_repository import register_new_user, login_user
 
 # Importar el CRUD de los libros
-from database.book_repository import get_featured_books
+# JDMC 20260511: funciones para detalles del libro y procesamiento de compras
+from database.book_repository import get_featured_books, get_book_details, create_purchase, get_purchase_history
 
 # Creamos el objeto de FastAPI y el objeto de plantilas
 app = FastAPI()
@@ -141,3 +142,121 @@ async def post_login(request: Request, email: str = Form(...), password: str = F
         "request": request, # Necesario para Jinja2
         "mensaje": "Correo o contraseña incorrectos"
     })
+
+# ===== ENDPOINTS PARA MODAL DE DETALLES Y COMPRA - JDMC 20260511 =====
+# GET /api/libro/{book_id}: retorna detalles completos del libro en JSON
+# POST /api/compra: procesa la transacción de compra y actualiza stock
+
+@app.get("/api/libro/{book_id}")
+async def get_libro_detalle(book_id: int, session_token: str = Cookie(None)):
+    """
+    Endpoint que obtiene los detalles completos de un libro (JSON).
+    
+    Entrada:
+        - book_id: ID del libro
+    
+    Retorna:
+        - JSON con los detalles del libro o error 404
+    """
+    if not session_token:
+        return {"error": "No autenticado"}
+    
+    libro = get_book_details(book_id)
+    
+    if not libro:
+        return {"error": "Libro no encontrado"}
+    
+    return libro
+
+@app.post("/api/compra")
+async def realizar_compra(
+    book_id: int = Form(...),
+    cantidad: int = Form(...),
+    session_token: str = Cookie(None)
+):
+    """
+    Endpoint para procesar una compra.
+    
+    Entrada:
+        - book_id: ID del libro a comprar
+        - cantidad: Cantidad de libros a comprar
+    
+    Retorna:
+        - JSON con el resultado de la transacción
+    """
+    if not session_token:
+        return {"error": "No autenticado", "success": False, "details": "No hay token de sesión"}
+    
+    from database.client import supabase
+    
+    try:
+        # Obtener el usuario actual desde el token
+        user = supabase.auth.get_user(session_token)
+        user_id = user.user.id if user and user.user else None
+        
+        if not user_id:
+            return {"error": "Usuario no válido", "success": False, "details": "No se pudo obtener el ID del usuario del token"}
+        
+        print(f"[COMPRA] User ID: {user_id}, Book ID: {book_id}, Cantidad: {cantidad}")
+        
+        # Procesar la compra
+        resultado = create_purchase(user_id, book_id, cantidad)
+        
+        if resultado:
+            print(f"[COMPRA EXITOSA] Transacción ID: {resultado.get('id_transaccion')}, Total: {resultado.get('total')}")
+            return {
+                "success": True,
+                "mensaje": "¡Compra realizada exitosamente!",
+                "transaccion_id": resultado.get("id_transaccion"),
+                "total": resultado.get("total")
+            }
+        else:
+            print(f"[ERROR COMPRA] create_purchase retornó None")
+            return {"error": "No se pudo procesar la compra", "success": False, "details": "La función create_purchase no retornó datos válidos"}
+    
+    except Exception as e:
+        error_msg = str(e)
+        print(f"[ERROR ENDPOINT COMPRA] {error_msg}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "error": "Error al procesar la compra",
+            "success": False,
+            "details": error_msg
+        }
+
+
+@app.get("/api/historial-compras")
+async def historial_compras(session_token: str = Cookie(None)):
+    """
+    Endpoint para obtener el historial de compras del usuario autenticado.
+    """
+    if not session_token:
+        return {"success": False, "error": "No autenticado", "details": "No hay token de sesión"}
+
+    from database.client import supabase
+
+    try:
+        user = supabase.auth.get_user(session_token)
+        user_id = user.user.id if user and user.user else None
+
+        if not user_id:
+            return {
+                "success": False,
+                "error": "Usuario no válido",
+                "details": "No se pudo obtener el ID del usuario del token"
+            }
+
+        historial = get_purchase_history(user_id)
+        return {"success": True, "historial": historial}
+
+    except Exception as e:
+        error_msg = str(e)
+        print(f"[ERROR HISTORIAL] {error_msg}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "success": False,
+            "error": "Error al obtener historial",
+            "details": error_msg
+        }
