@@ -1,6 +1,12 @@
 # Importamos el objeto de supabase Client
 from database.client import supabase
 
+# Importamos regex para la validación del formato del correo
+import re
+
+# Definimos el patron regex para el correo
+PATRON = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+
 def register_new_user(email, password, nombre, apellido, telefono):
     """
     Función que usa las funciones del objeto supabase para registrar un usuario.
@@ -17,6 +23,10 @@ def register_new_user(email, password, nombre, apellido, telefono):
         código de error si no se pudo crear)
     """
     try:
+        # Chequeamos el formato del correo
+        if not re.match(PATRON, email):
+            raise ValueError("Correo con formato inválido.")
+        
         # Intentamos logear en la tabla privada
         auth_response = supabase.auth.sign_up({
             "email": email,
