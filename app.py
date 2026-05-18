@@ -169,16 +169,21 @@ async def get_libro_detalle(book_id: int, session_token: str = Cookie(None)):
     return libro
 
 @app.get("/buscar", response_class=HTMLResponse)
-async def buscar_libro(request: Request, q: str = ""):
+async def buscar_libro(request: Request, q: str = "", session_token: str = Cookie(None)):
     """
     Método GET para buscar una lista de libros
     """
     # El "Freno": Si no hay cookie, mandamos la redirección de una vez
+    if not session_token:
+        return RedirectResponse(url="/login", status_code=status.HTTP_303_SEE_OTHER)
+    
+    # Si hay cookie, el código sigue normal
     resultado = get_book_by_name(q)
     
     return templates.TemplateResponse("index.html", {
         "request": request,
-        "libros": resultado
+        "libros": resultado,
+        "q": q  # Pasar el término de búsqueda al template
     })
 
 @app.post("/api/compra")

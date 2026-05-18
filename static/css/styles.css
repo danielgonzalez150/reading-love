@@ -111,6 +111,69 @@ a:hover {
     color: var(--primary-light);
 }
 
+/* ===== Formulario de búsqueda en el navbar ===== */
+.search-form-container {
+    flex: 1;
+    max-width: 500px;
+    margin: 0 2rem;
+}
+
+.search-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-field {
+    width: 100%;
+    padding: 0.65rem 3rem 0.65rem 1rem;
+    font-size: 0.9rem;
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-field::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.search-field:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(233, 30, 140, 0.15);
+}
+
+.search-submit-btn {
+    position: absolute;
+    right: 0.5rem;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    border: none;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: white;
+}
+
+.search-submit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(233, 30, 140, 0.4);
+}
+
+.search-submit-btn:active {
+    transform: translateY(0);
+}
+
+.search-submit-btn svg {
+    display: block;
+}
+
 /* ===== Páginas de autenticación (login y registro) ===== */
 .auth-page {
     display: flex;
