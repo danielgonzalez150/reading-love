@@ -70,6 +70,37 @@ def get_book_details(book_id: int):
         print(f"Error al obtener detalles del libro {book_id}: {e}")
         return None
 
+def get_book_by_name(book_name: str):
+    """
+    Busca libros en la base de datos de Supabase que coincidan 
+    o contengan el nombre proporcionado (Case-Insensitive).
+    
+    Parámetros:
+    - supabase_client: El objeto cliente de Supabase ya inicializado.
+    - book_name: El string con el nombre o parte del nombre del libro.
+    
+    Retorna:
+    - Una lista con los libros encontrados o una lista vacía si no hay coincidencias.
+    """
+    try:
+        # Usamos '%' antes y después para que busque coincidencias parciales (ej. "amor" encuentra "El amor en los tiempos del cólera")
+        search_pattern = f"%{book_name}%"
+        
+        response = (
+            supabase.table("libros")
+            .select("id_libro, titulo, precio, ano_publicacion, stock")
+            .ilike("titulo", search_pattern)
+            .eq("activo", True)  # Asegúrate de que tu columna se llame 'nombre' o 'titulo'
+            .execute()
+        )
+        
+        # .execute() devuelve un objeto que contiene el atributo 'data' con la lista de registros
+        return response.data
+
+    except Exception as e:
+        print(f"Error al buscar el libro: {e}")
+        return []
+    
 def create_purchase(user_id: str, book_id: int, cantidad: int):
     """
     Crea transacción con detalles. Inserta en transacciones y detalle_transaccion.

@@ -20,7 +20,7 @@ from database.auth_repository import register_new_user, login_user
 
 # Importar el CRUD de los libros
 # JDMC 20260511: funciones para detalles del libro y procesamiento de compras
-from database.book_repository import get_featured_books, get_book_details, create_purchase, get_purchase_history
+from database.book_repository import get_featured_books, get_book_details, create_purchase, get_purchase_history, get_book_by_name
 
 # Creamos el objeto de FastAPI y el objeto de plantilas
 app = FastAPI()
@@ -167,6 +167,19 @@ async def get_libro_detalle(book_id: int, session_token: str = Cookie(None)):
         return {"error": "Libro no encontrado"}
     
     return libro
+
+@app.get("/buscar", response_class=HTMLResponse)
+async def buscar_libro(request: Request, q: str = ""):
+    """
+    Método GET para buscar una lista de libros
+    """
+    # El "Freno": Si no hay cookie, mandamos la redirección de una vez
+    resultado = get_book_by_name(q)
+    
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "libros": resultado
+    })
 
 @app.post("/api/compra")
 async def realizar_compra(
